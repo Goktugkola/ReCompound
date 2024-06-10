@@ -1,0 +1,39 @@
+[gd_scene load_steps=7 format=3 uid="uid://8dyliquqeeea"]
+
+[ext_resource type="Script" path="res://Scenes/Player.gd" id="1_7vyos"]
+[ext_resource type="Texture2D" uid="uid://di3nuft6bsng" path="res://Resources/Sprites/Player1/run.png" id="2_bk41x"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jc24x"]
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_3vx7u"]
+graph_offset = Vector2(-390, -95)
+
+[sub_resource type="Animation" id="Animation_tqlbs"]
+resource_name = "Idle"
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_uwn6b"]
+_data = {
+"Idle": SubResource("Animation_tqlbs")
+}
+
+[node name="Player1" type="CharacterBody2D"]
+position = Vector2(427, 344)
+script = ExtResource("1_7vyos")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2(1, 2)
+shape = SubResource("RectangleShape2D_jc24x")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_bk41x")
+vframes = 9
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+root_node = NodePath(".")
+tree_root = SubResource("AnimationNodeStateMachine_3vx7u")
+anim_player = NodePath("AnimationPlayer")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimationTree"]
+libraries = {
+"": SubResource("AnimationLibrary_uwn6b")
+}
