@@ -12,12 +12,10 @@
 script = ExtResource("1_kebjj")
 
 [node name="Player1" parent="." instance=ExtResource("1_kqdhr")]
-collision_layer = 0
 metadata/player_id = 1
 
 [node name="Player2" parent="." instance=ExtResource("1_kqdhr")]
 position = Vector2(741, 332)
-collision_layer = 0
 metadata/player_id = 2
 
 [node name="Camera2D" type="Camera2D" parent="."]

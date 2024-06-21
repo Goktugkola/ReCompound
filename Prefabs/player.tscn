@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://8dyliquqeeea"]
+[gd_scene load_steps=10 format=3 uid="uid://8dyliquqeeea"]
 
 [ext_resource type="Script" path="res://Scenes/Player.gd" id="1_7vyos"]
 [ext_resource type="Texture2D" uid="uid://di3nuft6bsng" path="res://Resources/Sprites/Player1/run.png" id="2_bk41x"]
+[ext_resource type="Script" path="res://Scripts/Player/AttackSystem.gd" id="3_naqjs"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jc24x"]
 
@@ -15,6 +16,10 @@ resource_name = "Idle"
 _data = {
 "Idle": SubResource("Animation_tqlbs")
 }
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_awkn0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yuyk8"]
 
 [node name="Player1" type="CharacterBody2D"]
 position = Vector2(427, 344)
@@ -37,3 +42,26 @@ anim_player = NodePath("AnimationPlayer")
 libraries = {
 "": SubResource("AnimationLibrary_uwn6b")
 }
+
+[node name="AttackSystem" type="Node" parent="." node_paths=PackedStringArray("hurtbox")]
+script = ExtResource("3_naqjs")
+hurtbox = NodePath("../Dash_damage_Area")
+
+[node name="HealthSystem" type="Node" parent="."]
+
+[node name="Dash_damage_Area" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 512
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Dash_damage_Area"]
+position = Vector2(24, 0)
+scale = Vector2(1, 2)
+shape = SubResource("RectangleShape2D_awkn0")
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 512
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+scale = Vector2(1, 2)
+shape = SubResource("RectangleShape2D_yuyk8")

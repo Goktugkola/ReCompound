@@ -1,7 +1,7 @@
 extends CharacterBody2D
-
 # Constants for movement
-const MAX_SPEED = 200
+const SPEED = 200
+const MAX_SPEED = 300
 const JUMP_FORCE = -400
 const GRAVITY = 800
 const WALL_JUMP_FORCE = Vector2(200, -400)  # Adjusted for clarity
@@ -10,6 +10,7 @@ const SLIDE_ACCELERATION = 140  # Acceleration for sliding down the wall
 const MAX_SLIDE_SPEED = 500  # Maximum speed for sliding down the wall
 const DASH_SPEED = 600  # Speed of the dash
 const DASH_DURATION = 0.2  # Duration of the dash in seconds
+const DASH_COOLDOWN = 1.0  # Cooldown duration for the dash in seconds
 
 # Double jump variables
 var can_double_jump = true
@@ -24,6 +25,8 @@ var slide_speed = 0.0
 var is_dashing = false
 var dash_timer = 0.0
 var dash_direction = 0
+var dash_cooldown_timer = 0.0
+var can_dash = true
 
 # Player-specific input actions
 var move_right_action = ""
@@ -31,6 +34,9 @@ var move_left_action = ""
 var jump_action = ""
 var dash_action = ""
 
+# Knockback variables
+var knockback_force: Vector2 = Vector2.ZERO
+@export var knockback_duration: float = 0.3
 func _ready():
 	# Initialize input actions based on metadata
 	var player_id = get_meta("player_id")
@@ -46,16 +52,19 @@ func _ready():
 		dash_action = "ui_dash_p2"
 
 func _physics_process(delta):
-	apply_gravity(delta)
-	handle_movement()
-	handle_jumping()
-	handle_wall_jump()
-	handle_wall_stick(delta)
-	handle_dash(delta)
-
-	# Apply movement
+	if !(knockback_force.length() > 50):
+		handle_movement()
+		handle_jumping()
+		handle_wall_jump()
+		handle_wall_stick(delta)
+		handle_dash(delta)
+		apply_gravity(delta)
+	else:
+		print(knockback_force)
+		velocity = knockback_force
+	knockback_force = knockback_force.lerp(Vector2.ZERO, delta  * (1 / knockback_duration))	
+	
 	move_and_slide()
-
 func apply_gravity(delta):
 	if not is_on_floor() and not on_wall and not is_dashing:
 		velocity.y += GRAVITY * delta
@@ -68,7 +77,7 @@ func handle_movement():
 		if Input.is_action_pressed(move_left_action):
 			direction -= 1
 
-		velocity.x = direction * MAX_SPEED
+		velocity.x = clamp(direction * SPEED, -MAX_SPEED, MAX_SPEED)
 
 func handle_jumping():
 	if Input.is_action_just_pressed(jump_action):
@@ -116,25 +125,31 @@ func handle_wall_stick(delta):
 			on_wall = false  # Stop sticking if the move key is not held
 
 func handle_dash(delta):
-	if Input.is_action_just_pressed(dash_action) and not is_dashing:
+	if dash_cooldown_timer > 0:
+		dash_cooldown_timer -= delta
+		if dash_cooldown_timer <= 0:
+			can_dash = true
+	if Input.is_action_just_pressed(dash_action) and can_dash and not is_dashing:
 		is_dashing = true
 		dash_timer = DASH_DURATION
 		dash_direction = get_move_direction()
 		velocity = Vector2(dash_direction * DASH_SPEED, 0)
-	
+		can_dash = false
+		dash_cooldown_timer = DASH_COOLDOWN
 	if is_dashing:
 		dash_timer -= delta
 		if dash_timer <= 0:
 			is_dashing = false
+			can_double_jump = false #istersen silebilirsin bilmiyorm.
 			velocity = Vector2(0, velocity.y)
 
 func get_move_direction() -> int:
-	var direction = 0
+	var direction = Vector2(0,0)
 	if Input.is_action_pressed(move_right_action):
-		direction += 1
+		direction.x += 1
 	if Input.is_action_pressed(move_left_action):
-		direction -= 1
-	return direction
+		direction.x -= 1
+	return direction.x
 
 func _is_on_wall(direction: int) -> bool:
 	var space_state = get_world_2d().direct_space_state
@@ -147,3 +162,7 @@ func _is_on_wall(direction: int) -> bool:
 	query.collide_with_areas = true
 	var result = space_state.intersect_ray(query)
 	return result.size() > 0
+func apply_knockback(knockback: Vector2):
+	knockback_force = knockback
+	print("Knockback applied:", knockback)
+
